@@ -54,11 +54,6 @@ while(len(line)):
     cost_arc = float(data[4])
     construction_arc = float(data[5])
     drive_time_arc = float(data[6])
-    
-    if temps_arc < 33:
-        miles_arc = 10000
-        cost_arc = 10000
-        drive_time_arc = 10000
 
     links.append((from_node, to_node))
     miles[from_node, to_node] = miles_arc
@@ -93,7 +88,6 @@ if user_input == 2:
 if user_input == 3:
     optimize_me = drive_times
 
-
 # create model and add variables
 m = Model('SP')
 x = m.addVars(links, obj = optimize_me, name = "flow")
@@ -101,8 +95,13 @@ x = m.addVars(links, obj = optimize_me, name = "flow")
 # add constraints and solve
 for i in range(1, num_nodes + 1):
     m.addConstr( sum(x[i,j] for i,j in links.select(i, '*')) - sum(x[j,i] for j,i in links.select('*',i)) == 
-                     (1 if i == origin else -1 if i == destination else 0 ),'node%s_' % i )
+                     (1 if i == origin else - 1 if i == destination else 0 ),'node%s_' % i )
 
+# add conditional constraint if temperature < 32
+for i,j in links:
+       if(temps[i,j] < 32):
+           m.addConstr(x[i,j] == 0)
+    
 m.optimize() 
 
 # print the optimal solution
@@ -110,58 +109,9 @@ if m.status == GRB.Status.OPTIMAL:
    print('The final solution is:')
    for i,j in links:
        if(x[i,j].x > 0):
-           print(i, j, x[i,j].x)
+           #print(i, j, x[i,j].x)
+           print('Leg', i, j)
  
-
-# rerun model and save sensitivity analysis info
-#if m.status != GRB.Status.OPTIMAL:
-#    print('Optimization ended with status %d' % m.status)
-#    exit(0)
-
-# Store the optimal solution
-
-origObjVal = m.ObjVal
-for v in m.getVars():
-    v._origX = v.X
-
-# Disable solver output for subsequent solves
-
-m.Params.outputFlag = 0
-
-# Iterate through unfixed, binary variables in model
-
-for v in m.getVars():
-    print(v.VType)
-    if (v.LB == 0 and v.UB == 1 \
-        and (v.VType == GRB.CONTINUOS or v.VType == GRB.INTEGER)):
-
-        # Set variable to 1-X, where X is its value in optimal solution
-        if v._origX < 0.5:
-            v.LB = v.Start = 1
-        else:
-            v.UB = v.Start = 0
-
-        # Update MIP start for the other variables
-        for vv in m.getVars():
-            if not vv.sameAs(v):
-                vv.Start = vv._origX
-
-        # Solve for new value and capture sensitivity information
-        m.optimize()
-
-        if m.status == GRB.Status.OPTIMAL:
-            print('Objective sensitivity for variable %s is %g' % \
-                  (v.VarName, m.ObjVal - origObjVal))
-        else:
-            print('Objective sensitivity for variable %s is infinite' % \
-                  v.VarName)
-
-        # Restore the original variable bounds
-        v.LB = 0
-        v.UB = 1
-    else:
-        print('didnt work')
-
 # plot the graph
 fig = plt.figure(figsize=(20, 10))          
 G=nx.DiGraph()
@@ -171,7 +121,11 @@ for i,j in links:
     G.add_edge(i,j)
 
 # Adding the position attribute to each node
-node_pos = {1:(0, 0), 2:(10, 2), 3:(10, -2), 4:(20, 0), 5:(30, 2), 6:(30, -2), 7:(40, 0), 8:(50, 2), 9:(50, -2), 10:(60, 0), 11:(70, 2), 12:(70, -2), 13: (80, 0), 14:(90, 2), 15:(90, -2), 16:(100, 0), 17:(110, 2), 18:(110, -2), 19:(120, 0), 20:(130, 2), 21:(130,-2), 22:(140, 0), 23:(150, 2), 24:(150, -2), 25:(160,0)}
+node_pos = {1:(0, 0), 2:(10, 2), 3:(10, -2), 4:(20, 0), 5:(30, 2), 6:(30, -2), \
+            7:(40, 0), 8:(50, 2), 9:(50, -2), 10:(60, 0), 11:(70, 2), 12:(70, -2), \
+            13: (80, 0), 14:(90, 2), 15:(90, -2), 16:(100, 0), 17:(110, 2), 18:(110, -2), \
+            19:(120, 0), 20:(130, 2), 21:(130,-2), 22:(140, 0), 23:(150, 2), 24:(150, -2), \
+            25:(160,0)}
 
 # Create a list of edges in shortest path
 red_edges = [(i,j) for i,j in links if x[i,j].x > 0]
@@ -181,17 +135,23 @@ sp = [ i for i,j in links if x[i,j].x > 0 ]
 sp.append(destination)
 
 # If the node is in the shortest path, set it to red, else set it to white color
-node_col = ['white' if not node in sp else 'red' for node in G.nodes()]
+node_col = ['gray' if not node in sp else 'green' for node in G.nodes()]
+
 # If the edge is in the shortest path set it to red, else set it to white color
-edge_col = ['black' if not edge in red_edges else 'red' for edge in G.edges()]
+edge_col = ['white' if not edge in red_edges else 'green' for edge in G.edges()]
+
 # Draw the nodes
 nx.draw_networkx(G,node_pos, node_color = node_col, node_size = 450)
+
 # Draw the node labels
-# nx.draw_networkx_labels(G1, node_pos,node_color= node_col)
+# nx.draw_networkx_labels(G, node_pos,node_color= node_col)
+
 # Draw the edges
 nx.draw_networkx_edges(G, node_pos, edge_color = edge_col)
+
 # Draw the edge labels
-nx.draw_networkx_edge_labels(G, node_pos, edge_color = edge_col, edge_labels = cost)
+nx.draw_networkx_edge_labels(G, node_pos, edge_color = edge_col, edge_labels = optimize_me)
+
 # Remove the axis
 plt.axis('off')
 
