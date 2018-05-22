@@ -10,8 +10,8 @@ from gurobipy import *
 import matplotlib.pyplot as plt
 import networkx as nx
 
-# read the file
-f = open("full_data.txt", "r")
+# read the setup file
+f = open("graph_setup.txt", "r")
 line = f.readline()
 line = line.strip('\n')
 
@@ -33,8 +33,7 @@ line = line.strip('\n')
 data = line.split(':')
 destination = int(data[1])
 
-line = f.readline()
-line = f.readline()
+f.close()
 
 links = tuplelist()
 miles  = {}
@@ -43,6 +42,10 @@ cost = {}
 construction = {}
 drive_times = {}
 
+# read the data
+f = open("full_data.txt", "r")
+line = f.readline()
+line = f.readline()
 # read remaining lines from file and assign to variable
 while(len(line)):
     line = line.strip('\n')
@@ -73,6 +76,7 @@ drive_times_target = 2056
 print('1. Optimize by miles.')
 print('2. Optimize by cost.')
 print('3. Optimize by driving time.')
+print('4. Optimize by miles, cost and driving time (MOLP)')
 user_input = raw_input('Enter model to optimize: ')
 
 try:
@@ -83,14 +87,38 @@ except ValueError:
 
 if user_input == 1:
     optimize_me = miles
+    v_name = 'miles'
 if user_input == 2:
     optimize_me = cost
+    v_name = 'cost'
 if user_input == 3:
     optimize_me = drive_times
+    v_name = 'drive_times'
+if user_input == 4:
+    optimize_me = drive_times
+    v_name = 'drive_times'
 
 # create model and add variables
 m = Model('SP')
-x = m.addVars(links, obj = optimize_me, name = "flow")
+
+if user_input != 4:
+    m.ModelSense = GRB.MINIMIZE
+    x = m.addVars(links, obj = optimize_me, name = v_name, vtype = GRB.BINARY)
+
+if user_input == 4:
+    x = m.addVars(links, name = 'flow', vtype = GRB.BINARY)
+    # set the objectives
+    miles_objective = LinExpr()
+    cost_objective = LinExpr()
+    driving_objective = LinExpr()
+    for vars in x:
+        miles_objective += miles[vars] * x[vars]
+        cost_objective += cost[vars] * x[vars]
+        driving_objective += drive_times[vars] * x[vars]
+    
+    m.setObjectiveN(miles_objective, index = 0, priority = 1, weight = 1, name = 'Miles')
+    m.setObjectiveN(cost_objective, index = 1, priority = 2, weight = 1, name = 'Cost')
+    m.setObjectiveN(driving_objective, index = 2, priority = 3, weight = 1, name = 'Drive Time')
 
 # add constraints and solve
 for i in range(1, num_nodes + 1):
@@ -158,3 +186,52 @@ plt.axis('off')
 # Show the plot
 plt.savefig("Graph.png", format="PNG")
 plt.show()
+
+# Sensitivity analysis
+#edges = [(i,j) for i,j in links if x[i,j].x > 0]
+#for x in edges:
+#    print(optimize_me)
+
+# rerun model and save sensitivity analysis info
+#if m.status != GRB.Status.OPTIMAL:
+#    print('Optimization ended with status %d' % m.status)
+#    exit(0)
+
+# Store the optimal solution
+origObjVal = m.ObjVal
+for v in m.getVars():
+    v._origX = v.X
+
+# Disable solver output for subsequent solves
+m.Params.outputFlag = 0
+
+# Iterate through unfixed, binary variables in model
+for v in m.getVars():
+    if (v.LB == 0 and v.UB == 1 \
+        and (v.VType == GRB.BINARY or v.VType == GRB.INTEGER)):
+
+        # Set variable to 1-X, where X is its value in optimal solution
+        if v._origX < 0.5:
+            v.LB = v.Start = 1
+        else:
+            v.UB = v.Start = 0
+
+        # Update MIP start for the other variables
+        for vv in m.getVars():
+            if not vv.sameAs(v):
+                vv.Start = vv._origX
+
+        # Solve for new value and capture sensitivity information
+        m.optimize()
+
+        if m.status == GRB.Status.OPTIMAL:
+            print('Objective sensitivity for variable %s is %g' % \
+                  (v.VarName, m.ObjVal - origObjVal))
+        else:
+            print('Objective sensitivity for variable %s is infinite' % \
+                  v.VarName)
+
+        # Restore the original variable bounds
+        v.LB = 0
+        v.UB = 1
+

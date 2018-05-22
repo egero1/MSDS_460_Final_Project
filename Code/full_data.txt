@@ -1,7 +1,3 @@
-Number of Nodes:25
-Number of Arcs:54
-Origin:1
-Destination:25
 StartNode	EndNode		Mile   Temp    Cost      Constr  Drive_Time
 1	    2	    213	    45	 	 95.85 	    0.00	196.62
 1	    3	    197	    56	 	 108.35   	0.00	181.85
