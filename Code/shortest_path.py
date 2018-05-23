@@ -46,6 +46,7 @@ drive_times = {}
 f = open("full_data.txt", "r")
 line = f.readline()
 line = f.readline()
+
 # read remaining lines from file and assign to variable
 while(len(line)):
     line = line.strip('\n')
@@ -92,9 +93,6 @@ if user_input == 2:
     optimize_me = cost
     v_name = 'cost'
 if user_input == 3:
-    optimize_me = drive_times
-    v_name = 'drive_times'
-if user_input == 4:
     optimize_me = drive_times
     v_name = 'drive_times'
 

@@ -1,0 +1,4 @@
+Number of Nodes:25
+Number of Arcs:54
+Origin:1
+Destination:25

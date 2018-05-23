@@ -2245,3 +2245,96 @@ Solution count 2: 1209.87 2733.21
 
 Optimal solution found (tolerance 1.00e-04)
 Best objective 1.209870000000e+03, best bound 1.209870000000e+03, gap 0.0000%
+Optimize a model with 27 rows, 54 columns and 110 nonzeros
+Variable types: 0 continuous, 54 integer (54 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [6e+01, 6e+02]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+00, 1e+00]
+
+---------------------------------------------------------------------------
+Multi-objectives: starting optimization with 3 objectives ... 
+---------------------------------------------------------------------------
+
+Multi-objectives: applying initial presolve ...
+---------------------------------------------------------------------------
+
+Presolve removed 6 rows and 6 columns
+Presolve time: 0.00s
+Presolved: 21 rows and 48 columns
+---------------------------------------------------------------------------
+
+Multi-objectives: optimize objective 1 (Drive Time) ...
+---------------------------------------------------------------------------
+
+Found heuristic solution: objective 3019.3900000
+Presolve removed 21 rows and 48 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+
+Explored 0 nodes (0 simplex iterations) in 0.04 seconds
+Thread count was 1 (of 8 available processors)
+
+Solution count 2: 2224.62 3019.39 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.224620000000e+03, best bound 2.224620000000e+03, gap 0.0000%
+---------------------------------------------------------------------------
+
+Multi-objectives: optimize objective 2 (Cost) ...
+---------------------------------------------------------------------------
+
+
+Loaded MIP start with objective 1896.51
+
+Presolve removed 8 rows and 19 columns
+Presolve time: 0.00s
+Presolved: 14 rows, 29 columns, 87 nonzeros
+Variable types: 0 continuous, 29 integer (29 binary)
+
+Root relaxation: objective 1.878310e+03, 13 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0 infeasible    0      1896.51000 1896.51000  0.00%     -    0s
+
+Explored 0 nodes (13 simplex iterations) in 0.07 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 1896.51 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.896510000000e+03, best bound 1.896510000000e+03, gap 0.0000%
+---------------------------------------------------------------------------
+
+Multi-objectives: optimize objective 3 (Miles) ...
+---------------------------------------------------------------------------
+
+
+Loaded MIP start with objective 2410
+
+Presolve removed 8 rows and 19 columns
+Presolve time: 0.00s
+Presolved: 15 rows, 29 columns, 116 nonzeros
+Variable types: 0 continuous, 29 integer (29 binary)
+
+Root relaxation: cutoff, 11 iterations, 0.00 seconds
+
+    Nodes    |    Current Node    |     Objective Bounds      |     Work
+ Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
+
+     0     0     cutoff    0      2410.00000 2410.00000  0.00%     -    0s
+
+Explored 0 nodes (11 simplex iterations) in 0.11 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 1: 2410 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 2.410000000000e+03, best bound 2.410000000000e+03, gap 0.0000%
+
+---------------------------------------------------------------------------
+Multi-objectives: solved in 0.12 seconds, solution count 2
+
